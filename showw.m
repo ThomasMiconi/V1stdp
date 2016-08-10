@@ -4,11 +4,8 @@ function showw(fname)
     end
     wff = load(fname);
     BORDER=2;
-    if (size(wff, 1) > 400)
-        NBCELLS_S1 = 400; %size(wff,1);
-    else
-        NBCELLS_S1 = 100; %size(wff,1);
-    end
+%    NBCELLS_S1 = size(wff,1);
+    NBCELLS_S1 = 100;
     RFSIZE = sqrt((size(wff,2)) / 2);
     sqs = ceil(sqrt(NBCELLS_S1));
     NBLI = sqs; NBCO = sqs;

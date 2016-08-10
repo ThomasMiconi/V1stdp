@@ -1,6 +1,15 @@
 addpath(genpath('/home/tm150/MATLAB/freezeColors'));
 addpath(genpath('/home/tm150/MATLAB/subplot_tight'));
 
+% Before doing anything, you need to run ./stdp learn , and let it run for a while (should be OK when it gets to ~300K evals, 
+% which should take less than a day - check the output files it generates every 100K evals )
+
+% Then you need to run ./stdp test to generate test data.
+
+% Each section / figure is guarded by an "if 0". Change to "if 1" to generate this particular figure. Be sure to run the commands 
+% specified in the code for each figure to generate the appropriate data.
+
+
 load('w.txt'); w = w(1:100, 1:100);
 wlat = w;
 %load ('resps_test.txt'); resps = resps_test;
@@ -8,7 +17,6 @@ wlat = w;
 NBCELLS_S1 = size(w, 1);
 
 
-STUDIEDCELL = 14; % For the spontaneous / pulse in td14 9823.  t1: 5.
 
 
 % w = zscore(wlat_S1);
@@ -65,7 +73,7 @@ if  0
     
     
     
-    if 0
+    if 1
         disp('Loading data (clusters)...');
         load ('resps_test.txt');
         ll = load('lastnv_test.txt');ll = ll(1:100,:);
@@ -170,18 +178,14 @@ if  0
     if  1
         % V TRACES
         %figtraces = figure;
-        % imagesc(ll(:,5001:8000))   %  <--- To see some presentations with  gamma and others without...
+        %imagesc(ll(:,4001:8000)) %  <--- To see some presentations with  gamma and others without...
         
         LW = 1;
         
-        STARTTIME = 8050 - 350 + 1;
-        cellz = [8 2 39];  % First 2 cells are same cluster, 3rd cell is different cluster.
-        
-        %STARTTIME = 10500 - 2*350 + 1;
-        %cellz = [11 17 9];  % First 2 cells are same cluster, 3rd cell is different cluster.
-        
-        %STARTTIME =  2*350 + 1;
-        %cellz = [10 18 9];  % First 2 cells are same cluster, 3rd cell is different cluster.
+        %STARTTIME = 8050 - 350 + 1;
+        %cellz = [8 2 39];  % First 2 cells are same cluster, 3rd cell is different cluster.
+        STARTTIME = 7001;
+        cellz = [99 96 5];  % First 2 cells are same cluster, 3rd cell is different cluster.
         
         
         subplot_tight(3,2, 5:6, .1);
@@ -210,7 +214,7 @@ if  0
     
     set(findall(figclust,'-property','FontSize'),'FontSize',8)
     
-    %set(figclust, 'Units', 'Centimeters', 'Resize', 'Off', 'Position', [10 10 12 11], 'PaperPosition', [0 0 12 11]);
+    set(figclust, 'Units', 'Centimeters', 'Resize', 'Off', 'Position', [10 10 6 6], 'PaperPosition', [0 0 6 6]);
     %print(gcf, '-dtiff', '-r300', ['test.tiff'])
     print(figclust, '-depsc', '-r300', 'figurecluster.eps')
     saveas(figclust, 'figurecluster.png');
@@ -222,6 +226,8 @@ if 0
         % SPONTANEOUS
         % You need to run CLUSTERS first!
         
+        %./stdp spont latconnmult 5.0 wie .5 wpenscale .33 altpmult .75 delayparam 5.0 
+
     
     if 1
         disp('Loading data (spontaneous activity)...');
@@ -382,7 +388,7 @@ if  0
     % Are there clusters of firing patterns in the randomized-patches network? (No!)
     
     
-    if 0
+    if 1
         load ('../testRandom/resps_test.txt');
         ll_r = load('../testRandom/lastnv_test.txt');ll_r = ll_r(1:100,:);
         
@@ -506,6 +512,8 @@ if  0
     set(findall(figclust_r,'-property','FontSize'),'FontSize',9)
     
     %set(figclust, 'Units', 'Centimeters', 'Resize', 'Off', 'Position', [10 10 12 11], 'PaperPosition', [0 0 12 11]);
+        set(figclust_r, 'Units', 'Centimeters', 'Resize', 'Off', 'Position', [10 10 6 6], 'PaperPosition', [0 0 6 6]);
+
     %print(gcf, '-dtiff', '-r300', ['test.tiff'])
     print(figclust_r, '-depsc', '-r300', 'figurecluster_r.eps')
     saveas(figclust_r, 'figurecluster_r.png');
@@ -593,7 +601,7 @@ end
 
 
 % 400 Neurons
-if 1
+if 0
 
     if 1
         disp('Loading data (400 Neurons)...');
@@ -614,6 +622,10 @@ if 1
     
         subplot_tight(5, 2, 5:10, .1);
     showw('../test400/wff.txt');
+        ylabel('400 E Neurons');
+    
+    title('Receptive fields');
+
     freezeColors; 
     
 
@@ -640,9 +652,6 @@ if 1
     axis square;
     colormap(hot);
  
-    ylabel('400 E Neurons');
-    
-    title('Receptive fields');
 
     set(fig400,  'Units', 'Inches', 'Resize', 'Off', 'Position', [10 10 7.2 6], 'PaperPosition', [0 0 7.2 6]);
         print(fig400, '-depsc', '-r300', 'figure400.eps')
@@ -724,12 +733,26 @@ if 0
 end
 
 
-if 0
+if 1
     
     %PULSE
     figpulse = figure;
     
+            % NOTE: you need to run:
+        %./stdp spont latconnmult 5.0 wie .5 wpenscale .33 altpmult .75 delayparam 5.0 noinh
+        %./stdp spont latconnmult 5.0 wie .5 wpenscale .33 altpmult .75 delayparam 5.0 noinh nolat
+     
+    % The stimuli for which we plot pulse responses (i.e. the strongest stimulus for each cluster, as returned by analyzewlat.m).
+    stimlist = [120 30 50 873]; % 625   193   927    ]; %  241   629   466];    % We only use the first few ones.
     
+    % For each of these, you need to run ./stdp pulse [stim #]  latconnmult 5.0 wie .5 wpenscale .33 altpmult .75 delayparam 5.0 
+    % AND ./stdp pulse [stim #]  latconnmult 5.0 wie .5 wpenscale .33 altpmult .75 delayparam 5.0  noinh nolat
+    
+    
+    
+    stimlist = stimlist - 1; % Convert from Matlab to (zero-indexed) C++. 
+    
+
     % First we plot the spontaneous/divergence
     
     %subplot_tight(1,3,1);
@@ -773,12 +796,7 @@ if 0
     legend(gca, 'boxoff');
     
     
-    % The stimuli for which we plot pulse responses (i.e. the strongest stimulus for each cluster, as returned by analyzewlat.m).
-    % For each, you need to run stdp pulse [stim #] latconnmult 4.32 wie .5 wpenscale .33 altpmult .75  AND stdp pulse [stim #] latconnmult 4.32 wie .5 wpenscale .33 altpmult .75 noinh nolat
-    stimlist = [120 30 50 873]; % 625   193   927    ]; %  241   629   466];    % We only use the first few ones.
-    stimlist = stimlist - 1; % Convert from Matlab to (zero-indexed) C++
-    
-    NBPLOTS = length(stimlist);
+       NBPLOTS = length(stimlist);
     
     for numstim = 1:NBPLOTS
         zestim = stimlist(numstim);
@@ -857,29 +875,31 @@ if 0
 end
 
 
-%Which stimuli should we mix?
-
-    %NUM1 = 120; NUM2 = 633; OK.. not so much competition in potentials
-    %NUM1 = 633; NUM2 = 903; % Has a jump in the middle
-    %NUM1 = 120; NUM2 = 903; % Competitive, but too jumpy
-    %NUM1 = 633; NUM2 = 873; % Not much comp, lateral shift
-    %NUM1 = 120; NUM2 = 873; % jumps
-    %NUM1 = 903; NUM2 = 873; % Competitive, strong lateral shift. Maybe good?
-    %NUM1 = 873; NUM2 = 216; % Jumpy, not much comp in v
-    %NUM1 = 120; NUM2 = 216; % little comp in V
-    %NUM1 = 633; NUM2 = 216; % little jumps, not much comp, lat shift
-    %NUM1 = 903; NUM2 = 216; % Also strong lat shift, comp, a bit jumpy?
-    %NUM1 = 216; NUM2 = 30;  % Good comp, but one jump in the middle...
-    %NUM1 = 120; NUM2 = 30;  % Noticeable comp ! Also good ish.
-    NUM1 = 633; NUM2 = 30;  % Clear comp, small lateral shift. Good.
-    %NUM1 = 903; NUM2 = 30;   % Same as prev, good.
-    %NUM1 = 873; NUM2 = 30;   %Way too jumpy
+     %3     1     8     4     6     9     2     5     7
+  % 903   120    10   873    30   859   633   216    50
+  %  36    29    34    31    31    32    34    31    28
 
 % MIXING
 
+%You must run these:
+% ./stdp mix 633 30 latconnmult 5.0 wie .5 wpenscale .33 altpmult .75 delayparam 5.0
+% ./stdp mix 633 30 latconnmult 5.0 wie .5 wpenscale .33 altpmult .75 delayparam 5.0 nolat
+% ./stdp mix 633 30 latconnmult 5.0 wie .5 wpenscale .33 altpmult .75 delayparam 5.0 nospike
+% ./stdp mix 633 30 latconnmult 5.0 wie .5 wpenscale .33 altpmult .75 delayparam 5.0 nospike nolat
+
+
+    %The stimuli we mix are the stimuli evoking the largest responses of two different (arbitrarily picked) clusters
+    NUM1 = 633; NUM2 = 30;  
+    
+
+
+
+    
 if  0
 
-    % Note : noelat = no E-E connections. nolat = no connections at all (including inhibitory). Both make the curves shallower, but nolat even more (unsurprisingly).
+    % Note : noelat = no E-E connections. nolat = no connections at all
+    % (including inhibitory). Both make the curves smoother (reduce the
+    % sharpness of the transition), but nolat even more (unsurprisingly).
     
     disp('Loading data (Mixing experiments...)');
     rl = load (['resps_mix_' num2str(NUM1 - 1) '_' num2str(NUM2 - 1) '.txt']);   % -1 converts from Matlab 1-indexing to C++ 0-indexing
@@ -948,7 +968,7 @@ end
 
 % MIXING - potentials
 
-if  0
+if  1
     disp('Loading data (Mixing experiments with potentials...)');
 
 
@@ -965,25 +985,26 @@ if  0
     
     colormap(hot);
     
-    subplot_tight(1,4,1, MARGIN);
+    subplot_tight(2,4,1, MARGIN);
     imagesc(rl(:,1:NBMIXES)); set(gca,'xtick',[1 NBMIXES], 'xticklabel', {'100%S2', '100%S1'}, 'ytick',[1 100]); ylabel('Cell #');
     title('\bf{A} \rm{}- Mix Stim.1 / Stim.2');
     caxis(ylimz);
     
-    subplot_tight(1,4,2, MARGIN); imagesc(rl(:, (NBMIXES + 1):2*NBMIXES)); set(gca,'xtick',[1 NBMIXES], 'xticklabel', {'0%S1', '100%S1'}, 'ytick',[]);
+    subplot_tight(2,4,2, MARGIN); imagesc(rl(:, (NBMIXES + 1):2*NBMIXES)); set(gca,'xtick',[1 NBMIXES], 'xticklabel', {'0%S1', '100%S1'}, 'ytick',[]);
     title('\bf{B} \rm{}- Stim.1 only');
     caxis(ylimz);
     
-    subplot_tight(1,4,3, MARGIN); imagesc(rl(:, (2*NBMIXES + 1):end)); set(gca,'xtick',[1 NBMIXES], 'xticklabel', {'100%S2', '0%S2'}, 'ytick',[]);
+    subplot_tight(2,4,3, MARGIN); imagesc(rl(:, (2*NBMIXES + 1):end)); set(gca,'xtick',[1 NBMIXES], 'xticklabel', {'100%S2', '0%S2'}, 'ytick',[]);
     title('\bf{C} \rm{}- Stim.2 only');
     caxis(ylimz);
     
     cbv = colorbar;
     set(cbv,  'ytick', ylimz) ; %, 'yticklabel', sprintf('%1.2f|', ylimz) );
-    set(cbv, 'Position', [0.47 .15 .020 .70]);
+    %set(cbv, 'Position', [0.47 .15 .020 .70]);
+    set(cbv, 'Position', [0.47 .60 .020 .25]);
     
     
-    subplot_tight(1,4,4, MARGIN);
+    subplot_tight(2,4,4, MARGIN);
     bs=[]; bs_nl=[];
     for nn=1:NBMIXES
         [b bint] = regress(rl(:, nn)./norm(rl(:,nn)), [rl(:,1)./norm(rl(:,1)), rl(:, NBMIXES)./norm(rl(:,NBMIXES))]);
@@ -1003,9 +1024,9 @@ if  0
     legend boxoff;
     
     
-    set(figmix_v, 'Units', 'Inches',  'Position', [10 10 7.2 2.4], 'PaperPosition', [0 0 7.2 2.4]);
-    print(figmix_v, '-depsc', '-r300', 'figuremix_v.eps')
-    print(figmix_v, '-dpng', '-r300', 'figuremix_v.png')
+    %set(figmix_v, 'Units', 'Inches',  'Position', [10 10 7.2 2.4], 'PaperPosition', [0 0 7.2 2.4]);
+    %print(figmix_v, '-depsc', '-r300', 'figuremix_v.eps')
+    %print(figmix_v, '-dpng', '-r300', 'figuremix_v.png')
     
     
     
@@ -1020,28 +1041,29 @@ if  0
     ylimz = fix( [min(rl(:)) max(rl(:))] );
     NBMIXES = size(rl, 2)/3;
     
-    figmix_v_nospike=figure;
+    %figmix_v_nospike=figure;
     
     colormap(hot);
     
-    subplot_tight(1,4,1, MARGIN);
+    subplot_tight(2,4,5, MARGIN);
     imagesc(rl(:,1:NBMIXES)); set(gca,'xtick',[1 NBMIXES], 'xticklabel', {'100%S2', '100%S1'}, 'ytick',[1 100]); ylabel('Cell #');
     title('\bf{E} \rm{}- Mix Stim.1 / Stim.2');
     caxis(ylimz);
     
-    subplot_tight(1,4,2, MARGIN); imagesc(rl(:, (NBMIXES + 1):2*NBMIXES)); set(gca,'xtick',[1 NBMIXES], 'xticklabel', {'0%S1', '100%S1'}, 'ytick',[]);
+    subplot_tight(2,4,6, MARGIN); imagesc(rl(:, (NBMIXES + 1):2*NBMIXES)); set(gca,'xtick',[1 NBMIXES], 'xticklabel', {'0%S1', '100%S1'}, 'ytick',[]);
     title('\bf{F} \rm{}- Stim.1 only');
     caxis(ylimz);
     
-    subplot_tight(1,4,3, MARGIN); imagesc(rl(:, (2*NBMIXES + 1):end)); set(gca,'xtick',[1 NBMIXES], 'xticklabel', {'100%S2', '0%S2'}, 'ytick',[]);
+    subplot_tight(2,4,7, MARGIN); imagesc(rl(:, (2*NBMIXES + 1):end)); set(gca,'xtick',[1 NBMIXES], 'xticklabel', {'100%S2', '0%S2'}, 'ytick',[]);
     title('\bf{G} \rm{}- Stim.2 only');
     caxis(ylimz);
     
     cbvns = colorbar;
     set(cbvns,  'ytick', ylimz) ; %, 'yticklabel', sprintf('%1.2f|', ylimz) );
-    set(cbvns, 'Position', [0.47 .15 .020 .70]);
+    %set(cbvns, 'Position', [0.47 .15 .020 .70]);
+    set(cbvns, 'Position', [0.47 .15 .020 .25]);
     
-    subplot_tight(1,4,4, MARGIN);
+    subplot_tight(2,4,8, MARGIN);
     
     bs=[]; bs_nl=[];
     for nn=1:NBMIXES
@@ -1049,7 +1071,7 @@ if  0
         %[bnl bint] = regress(rnl(:, nn)./norm(rnl(:,nn)), [rnl(:,1)./norm(rnl(:,1)), rnl(:, NBMIXES)./norm(rnl(:,NBMIXES))]);
         bs = [bs b]; bs_nl = [bs_nl bnl];
     end
-    set(figmix_v_nospike,'defaultAxesColorOrder',[1 0 0;0 0 1]);
+    %set(figmix_v_nospike,'defaultAxesColorOrder',[1 0 0;0 0 1]);
     hold off; plot([1:NBMIXES], bs', 'LineWidth', 2); axis([1 NBMIXES -.05 1.05]);
     %hold on; plot([1:NBMIXES], bs_nl', ':', 'LineWidth', 2);
     axis([1 NBMIXES -.05 1.05]); set(gca,'xtick',[],'ytick',[]);
@@ -1059,9 +1081,11 @@ if  0
     legend('Beta S2', 'Beta S1',   'location', 'southoutside');
     legend boxoff;
     
-    set(figmix_v_nospike, 'Units', 'Inches',  'Position', [10 10 7.2 2.4], 'PaperPosition', [0 0 7.2 2.4]);
-    print(figmix_v_nospike, '-depsc', '-r300', 'figuremix_v_nospike.eps')
-    print(figmix_v_nospike, '-dpng', '-r300', 'figuremix_v_nospike.png')
+   set(figmix_v , 'Units', 'Inches',  'Position', [10 10 7.2 4.8], 'PaperPosition', [0 0 7.2 4.8]);
+    %print(figmix_v_nospike, '-depsc', '-r300', 'figuremix_v_nospike.eps')
+    %print(figmix_v_nospike, '-dpng', '-r300', 'figuremix_v_nospike.png')
+    print(figmix_v , '-depsc', '-r300', 'figuremix_v.eps')
+    print(figmix_v , '-dpng', '-r300', 'figuremix_v.png')
     
 end
 

@@ -1,3 +1,6 @@
+// To compile (adapt as needed):
+// g++ -I $EIGEN_DIR/Eigen/ -O3 -std=c++11 stdp.cpp -o stdp
+
 #include <string>
 #include <iostream>
 #include <ctime>
@@ -128,6 +131,8 @@ int main(int argc, char* argv[])
 
     MatrixXd w = MatrixXd::Zero(NBNEUR, NBNEUR);
     MatrixXd wff = MatrixXd::Zero(NBNEUR, FFRFSIZE); 
+
+
     // These constants are only used for learning:
     double WPENSCALE = .33;
     double ALTPMULT = .75;
@@ -135,6 +140,8 @@ int main(int argc, char* argv[])
     double WIE_MAX = .5 * 4.32 / LATCONNMULT;
     double WII_MAX = .5 * 4.32 / LATCONNMULT;
     int NBPATTERNS, PRESTIME, NBPRES, NBSTEPSPERPRES, NBSTEPS;
+
+    // Command line parameters handling
     
             for (int nn=2; nn < argc; nn++){
                 if (std::string(argv[nn]).compare("nonoise") == 0) {
@@ -185,6 +192,8 @@ int main(int argc, char* argv[])
                     PULSETIME = std::stoi(argv[nn+1]);
                 }
             }
+
+// On the command line, you must specify one of 'learn', 'pulse', 'test', 'spontaneous', or 'mix'. If using 'pulse', you must specify a stimulus number. IF using 'mix', you must specify two stimulus numbers.
 
     if (PHASE == LEARNING)
     {
@@ -259,18 +268,24 @@ int main(int argc, char* argv[])
     MatrixXi lastnspikes = MatrixXi::Zero(NBNEUR, NBLASTSPIKESSTEPS);
     MatrixXd lastnv = MatrixXd::Zero(NBNEUR, NBLASTSPIKESSTEPS);
 
+
+
+
     cout << "Reading input data...." << endl;
-   
     int nbpatchesinfile = 0, totaldatasize = 0;
-    // The stimulus patches are 17x17x2 in length, arranged linearly. See below for the setting of feedforward firing rates based on patch data.
-    ifstream DataFile ("../../patchesCenteredScaledBySumTo70ImageNetONOFFRotatedNew.bin.dat", ios::in | ios::binary | ios::ate);
+
+// The stimulus patches are 17x17x2 in length, arranged linearly. See below for the setting of feedforward firing rates based on patch data.
+// See also  makepatchesImageNetInt8.m
+
+    ifstream DataFile ("./patchesCenteredScaledBySumTo126ImageNetONOFFRotatedNewInt8.bin.dat", ios::in | ios::binary | ios::ate);
     if (!DataFile.is_open()) { throw ios_base::failure("Failed to open the binary data file!"); return -1; }
     ifstream::pos_type  fsize = DataFile.tellg();
     char *membuf = new char[fsize];
     DataFile.seekg (0, ios::beg);
     DataFile.read(membuf, fsize);
     DataFile.close();
-    double* imagedata = (double *) membuf;
+    int8_t* imagedata = (int8_t*) membuf;
+    //double* imagedata = (double*) membuf;
     cout << "Data read!" << endl;
     totaldatasize = fsize / sizeof(double); // To change depending on whether the data is float/single (4) or double (8)
     nbpatchesinfile = totaldatasize / (PATCHSIZE * PATCHSIZE) - 1; // The -1 is just there to ignore the last patch (I think)
@@ -302,11 +317,9 @@ int main(int argc, char* argv[])
     VectorXd v =  VectorXd::Constant(NBNEUR, -70.5); // VectorXd::Zero(NBNEUR); // -70.5 is approximately the resting potential of the Izhikevich neurons, as it is of the AdEx neurons used in Clopath's experiments
 
 
+// Initializations. 
     VectorXi firings = VectorXi::Zero(NBNEUR);
     VectorXi firingsprev = VectorXi::Zero(NBNEUR);
-    VectorXi firingsprevprev = VectorXi::Zero(NBNEUR);
-    VectorXi firingsprevprevprev = VectorXi::Zero(NBNEUR);
-    VectorXi firingsprevprevprevprev = VectorXi::Zero(NBNEUR);
     VectorXd Iff = VectorXd::Zero(NBNEUR);
     VectorXd Ilat = VectorXd::Zero(NBNEUR);
     VectorXd I;
@@ -317,7 +330,7 @@ int main(int argc, char* argv[])
     VectorXd vprev = v;
     VectorXd vprevprev = v;
 
-    // Correct 
+    // Correct initialization for vlongtrace.
     VectorXd vlongtrace = (v.array() - THETAVLONGTRACE).cwiseMax(0);
 
     // Wrong:
@@ -360,25 +373,25 @@ int main(int argc, char* argv[])
 
 
     // We generate the delays:
-    // This is a trick to generate an exponential distribution, median should be small (maybe 2-4ms)
-    // DELAYPARAM should be a small value (3 to 6). 
+
+    // We use a trick to generate an exponential distribution, median should be small (maybe 2-4ms)
+    // The mental image is that you pick a uniform value in the unit line,
+    //repeatedly check if it falls below a certain threshold - if not, you cut
+    //out the portion of the unit line below that threshold and stretch the
+    //remainder (including the random value) to fill the unit line again. Each time you increase a counter, stopping when the value finally falls below the threshold. The counter at the end of this process has exponential distribution.
+    // There's very likely simpler ways to do it.
+
+    // DELAYPARAM should be a small value (3 to 6). It controls the median of the exponential.
     for (int ni=0; ni < NBNEUR; ni++){
         for (int nj=0; nj < NBNEUR; nj++){
 
             double val = (double)rand() / (double)RAND_MAX;
-            //double crit=.33333333;
-            //double crit=.25;
-            //double crit=.2;
             double crit= 1.0 / DELAYPARAM; // .1666666666;
             int mydelay;
             for (mydelay=1; mydelay <= MAXDELAYDT; mydelay++)
             {
                 if (val < crit) break;
-                //val = 3.0 *(val - crit) / 2.0 ;
-                //val = 4.0 *(val - crit) / 3.0 ;
-                //val = 5.0 *(val - crit) / 4.0 ;
-                //val = 6.0 *(val - crit) / 5.0 ;
-                val = DELAYPARAM  * (val - crit) / (DELAYPARAM -1.0) ;
+                val = DELAYPARAM  * (val - crit) / (DELAYPARAM -1.0) ; // "Cutting" and "Stretching"
             }
             if (mydelay > MAXDELAYDT)
                 mydelay = 1;
@@ -388,7 +401,7 @@ int main(int argc, char* argv[])
         }
     }
  
-    // NOTE: feedforward delays are NOT used (see below).   
+    // NOTE: We implement the machinery for feedforward delays, but they are NOT used (see below).   
     //myfile.open("delays.txt", ios::trunc | ios::out);  
     for (int ni=0; ni < NBNEUR; ni++){
         for (int nj=0; nj < FFRFSIZE; nj++){
@@ -417,9 +430,11 @@ int main(int argc, char* argv[])
 
     tic = clock();
     int numstep = 0;
+
+    // For each stimulus presentation...
     for (int numpres=0; numpres < NBPRES; numpres++)
     {
-
+        // Where are we in the data file?
         int posindata = ((numpres % nbpatchesinfile) * FFRFSIZE / 2 ); 
         if (PHASE == PULSE)
             posindata = ((STIM1 % nbpatchesinfile) * FFRFSIZE / 2 ); 
@@ -432,8 +447,8 @@ int main(int argc, char* argv[])
         
         for (int nn=0; nn < FFRFSIZE / 2; nn++)
         {
-            lgnrates(nn) = log(1.0 + (imagedata[posindata+nn] > 0 ? imagedata[posindata+nn] : 0));
-            lgnrates(nn + FFRFSIZE / 2) = log(1.0 + (imagedata[posindata+nn] < 0 ? -imagedata[posindata+nn] : 0));
+            lgnrates(nn) = log(1.0 + ((double)imagedata[posindata+nn] > 0 ? (double)imagedata[posindata+nn] : 0));
+            lgnrates(nn + FFRFSIZE / 2) = log(1.0 + ((double)imagedata[posindata+nn] < 0 ? -(double)imagedata[posindata+nn] : 0));
         }
         lgnrates /= lgnrates.maxCoeff(); // Scale by max! The inputs are scaled to have a maximum of 1 (multiplied by INPUTMULT below)
    
@@ -450,8 +465,8 @@ int main(int argc, char* argv[])
             
             for (int nn=0; nn < FFRFSIZE / 2; nn++)
             {
-                lgnratesS1(nn) = log(1.0 + (imagedata[posindata1+nn] > 0 ? imagedata[posindata1+nn] : 0));  lgnratesS1(nn + FFRFSIZE / 2) = log(1.0 + (imagedata[posindata1+nn] < 0 ? -imagedata[posindata1+nn] : 0));
-                lgnratesS2(nn) = log(1.0 + (imagedata[posindata2+nn] > 0 ? imagedata[posindata2+nn] : 0));  lgnratesS2(nn + FFRFSIZE / 2) = log(1.0 + (imagedata[posindata2+nn] < 0 ? -imagedata[posindata2+nn] : 0));
+                lgnratesS1(nn) = log(1.0 + ((double)imagedata[posindata1+nn] > 0 ? (double)imagedata[posindata1+nn] : 0));  lgnratesS1(nn + FFRFSIZE / 2) = log(1.0 + ((double)imagedata[posindata1+nn] < 0 ? -(double)imagedata[posindata1+nn] : 0));
+                lgnratesS2(nn) = log(1.0 + ((double)imagedata[posindata2+nn] > 0 ? (double)imagedata[posindata2+nn] : 0));  lgnratesS2(nn + FFRFSIZE / 2) = log(1.0 + ((double)imagedata[posindata2+nn] < 0 ? -(double)imagedata[posindata2+nn] : 0));
                 // No log-transform:
                 //lgnratesS1(nn) = ( (imagedata[posindata1+nn] > 0 ? imagedata[posindata1+nn] : 0));  lgnratesS1(nn + FFRFSIZE / 2) = ( (imagedata[posindata1+nn] < 0 ? -imagedata[posindata1+nn] : 0));
                 //lgnratesS2(nn) = ( (imagedata[posindata2+nn] > 0 ? imagedata[posindata2+nn] : 0));  lgnratesS2(nn + FFRFSIZE / 2) = ( (imagedata[posindata2+nn] < 0 ? -imagedata[posindata2+nn] : 0));
@@ -474,16 +489,13 @@ int main(int argc, char* argv[])
 
 
 
-        // At the beginning of every presentation, we reset everything ! (it is important for the random-patches case which tends to generate epileptic self-sustaining firing)
+        // At the beginning of every presentation, we reset everything ! (it is important for the random-patches case which tends to generate epileptic self-sustaining firing; 'normal' learning doesn't need it.)
         v.fill(Eleak);
         resps.col(numpres % NBRESPS).setZero();
         lgnfirings.setZero();
         lgnfiringsprev.setZero();
         firings.setZero();
         firingsprev.setZero();
-        firingsprevprev.setZero();
-        firingsprevprevprev.setZero();
-        firingsprevprevprevprev.setZero();
         for (int ni=0; ni < NBNEUR ; ni++)
             for (int nj=0; nj < NBNEUR ; nj++)
                 incomingspikes[ni][nj].fill(0);
@@ -541,7 +553,7 @@ int main(int argc, char* argv[])
                 */
 
 
-            // This, which ignores FF delays, is much faster....
+            // This, which ignores FF delays, is much faster.... MAtrix multiplications courtesy of the Eigen library.
             Iff =  wff * lgnfirings * VSTIM;
 
 
@@ -613,9 +625,6 @@ int main(int argc, char* argv[])
             
 
             // "correct" version: Firing neurons are crested / clamped at VPEAK, will be reset to VRESET  after the spiking time has elapsed.
-            firingsprevprevprevprev = firingsprevprevprev;
-            firingsprevprevprev = firingsprevprev;
-            firingsprevprev = firingsprev;
             firingsprev = firings;
             if (!NOSPIKE)
             {
@@ -639,7 +648,6 @@ int main(int argc, char* argv[])
             // "Wrong" version: firing if above threshold, immediately reset at Vreset.
             //firings = (v.array() > vthresh.array()).select(OneV, ZeroV);
             //v = (firings.array() > 0).select(VRESET, v);
-
 
             
             // AdEx variables update:
@@ -667,7 +675,7 @@ int main(int argc, char* argv[])
             //xplast_lat = xplast_lat + firings.cast<double>() - (dt / TAUXPLAST) * xplast_lat;
             //xplast_ff = xplast_ff + lgnfirings - (dt / TAUXPLAST) *  xplast_ff;
 
-            //Clopath-like version - the firings are also divided by tauxplast. 
+            //Clopath-like version - the firings are also divided by tauxplast. Might cause trouble if dt is modified? 
             xplast_lat = xplast_lat + firings.cast<double>() / TAUXPLAST - (dt / TAUXPLAST) * xplast_lat;
             xplast_ff = xplast_ff + lgnfirings / TAUXPLAST - (dt / TAUXPLAST) *  xplast_ff;
 

@@ -1,6 +1,9 @@
 addpath(genpath('/home/tm150/MATLAB/freezeColors'));
 
-% You need to run './stdp test' first !
+% This analyzes the output of the network and generate various figures. It needs shoow.m
+
+% First you need to run './stdp learn' to build the network. Then you need to run './stdp test' to generate the output data (with frozen weights).
+
 
 NBCELLS_S1 = 100;
 
