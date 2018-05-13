@@ -21,7 +21,7 @@
 #define RANDALTD 0.0
 #define ALTP (8e-5  * .008  * 1.0 ) // Note ALTPMULT below
 #define MINV -80.0
-#define TAUVLONGTRACE 20000  
+#define TAUVLONGTRACE 20000
 #define LATCONNMULTINIT 5.0  // The ALat coefficient; (12 * 36/100)
 
 #define NBI 20
@@ -33,20 +33,20 @@
 
 #define WFFINITMAX .1
 #define WFFINITMIN 0.0
-#define MAXW 50.0 
+#define MAXW 50.0
 #define VSTIM 1.0
 
 #define TIMEZEROINPUT 100
 #define NBPATTERNSLEARNING 1000000
-#define NBPATTERNSTESTING 1000 
-#define NBPATTERNSPULSE 50 
+#define NBPATTERNSTESTING 1000
+#define NBPATTERNSPULSE 50
 #define PRESTIMEMIXING 350 // in ms
 #define PRESTIMEPULSE 350
 #define NBPATTERNSSPONT 300
 #define PRESTIMESPONT 1000
 #define PULSESTART 0
-//#define NBPRESPERPATTERNLEARNING 30 
-#define NBPRESPERPATTERNTESTING 1 
+//#define NBPRESPERPATTERNLEARNING 30
+#define NBPRESPERPATTERNTESTING 1
 #define NBMIXES 30
 
 #define PATCHSIZE 17
@@ -71,7 +71,7 @@
 #define DELTAT 2.0  // in mV
 #define VTMAX -30.4
 #define VTREST -50.4
-#define VPEAK 20  // Also in mV 
+#define VPEAK 20  // Also in mV
 #define VRESET Eleak
 
 
@@ -83,7 +83,7 @@
 #define THETAVPOS -45.3
 #define THETAVNEG Eleak
 #define TAUXPLAST 15.0 // all 'tau' constants are in ms
-#define TAUVNEG 10.0 
+#define TAUVNEG 10.0
 #define TAUVPOS 7.0
 #define VREF2 50 // 70  // in mV^2
 
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
     int NBRESPS = -1;  // Number of resps (total nb of spike / total v for each presentation) to be stored in resps and respssumv. Must be set depending on the PHASE (learmning, testing, mixing, etc.)
     double LATCONNMULT = LATCONNMULTINIT;
     double INPUTMULT = -1.0; // To be modified!
-    double DELAYPARAM= 5.0; 
+    double DELAYPARAM= 5.0;
     if (argc > 1 && strcmp(argv[1], "test") == 0) PHASE = TESTING;
     else if (argc > 1 && strcmp(argv[1], "learn") == 0) PHASE = LEARNING;
     else if (argc > 1 && strcmp(argv[1], "mix") == 0) PHASE = MIXING;
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
     else { cerr << endl << "Error: You must provide at least one argument - 'learn', 'mix', 'pulse' or 'test'." << endl; if (argc >1) { cout<< "You provided argument '" << argv[1] << "'" << endl;}  return -1; }
 
     MatrixXd w = MatrixXd::Zero(NBNEUR, NBNEUR);
-    MatrixXd wff = MatrixXd::Zero(NBNEUR, FFRFSIZE); 
+    MatrixXd wff = MatrixXd::Zero(NBNEUR, FFRFSIZE);
 
 
     // These constants are only used for learning:
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
     int NBPATTERNS, PRESTIME, NBPRES, NBSTEPSPERPRES, NBSTEPS;
 
     // Command line parameters handling
-    
+
             for (int nn=2; nn < argc; nn++){
                 if (std::string(argv[nn]).compare("nonoise") == 0) {
                     NONOISE = 1;
@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
         NBRESPS = NBPRES;
         readWeights(w, "w.dat");
         readWeights(wff, "wff.dat");
-        
+
         //w.bottomRows(NBI).leftCols(NBE).fill(1.0); // Inhbitory neurons receive excitatory inputs from excitatory neurons
         //w.rightCols(NBI).fill(-1.0); // Everybody receives fixed, negative inhibition (including inhibitory neurons)
     }
@@ -262,7 +262,7 @@ int main(int argc, char* argv[])
     cout << "WPENSCALE: " << WPENSCALE << endl;
     cout << "ALTPMULT: " << ALTPMULT<< endl;
     NBSTEPSPERPRES = (int)(PRESTIME / dt);
-    NBLASTSPIKESSTEPS = NBLASTSPIKESPRES * NBSTEPSPERPRES; 
+    NBLASTSPIKESSTEPS = NBLASTSPIKESPRES * NBSTEPSPERPRES;
     NBSTEPS = NBSTEPSPERPRES * NBPRES;
 
     MatrixXi lastnspikes = MatrixXi::Zero(NBNEUR, NBLASTSPIKESSTEPS);
@@ -287,11 +287,11 @@ int main(int argc, char* argv[])
     int8_t* imagedata = (int8_t*) membuf;
     //double* imagedata = (double*) membuf;
     cout << "Data read!" << endl;
-    totaldatasize = fsize / sizeof(double); // To change depending on whether the data is float/single (4) or double (8)
+    totaldatasize = fsize / sizeof(int8_t); // To change depending on whether the data is float/single (4) or double (8)
     nbpatchesinfile = totaldatasize / (PATCHSIZE * PATCHSIZE) - 1; // The -1 is just there to ignore the last patch (I think)
     cout << "Total data size (number of values): " << totaldatasize << ", number of patches in file: " << nbpatchesinfile << endl;
     cout << imagedata[5654] << " " << imagedata[6546] << " " << imagedata[9000] << endl;
-    
+
 
 
     // The noise excitatory input is a Poisson process (separate for each cell) with a constant rate (in KHz / per ms)
@@ -308,16 +308,16 @@ int main(int argc, char* argv[])
     int delays[NBNEUR][NBNEUR];
     int delaysFF[FFRFSIZE][NBNEUR];
 
-    
+
     // The incoming spikes (both lateral and FF) are stored in an array of vectors (one per neuron/incoming synapse); each vector is used as a circular array, containing the incoming spikes at this synapse at successive timesteps:
-    VectorXi incomingspikes[NBNEUR][NBNEUR];  
-    VectorXi incomingFFspikes[NBNEUR][FFRFSIZE];  
+    VectorXi incomingspikes[NBNEUR][NBNEUR];
+    VectorXi incomingFFspikes[NBNEUR][FFRFSIZE];
 
 
     VectorXd v =  VectorXd::Constant(NBNEUR, -70.5); // VectorXd::Zero(NBNEUR); // -70.5 is approximately the resting potential of the Izhikevich neurons, as it is of the AdEx neurons used in Clopath's experiments
 
 
-// Initializations. 
+// Initializations.
     VectorXi firings = VectorXi::Zero(NBNEUR);
     VectorXi firingsprev = VectorXi::Zero(NBNEUR);
     VectorXd Iff = VectorXd::Zero(NBNEUR);
@@ -336,8 +336,8 @@ int main(int argc, char* argv[])
     // Wrong:
     //VectorXd vlongtrace = v;
 
-    VectorXi ZeroV = VectorXi::Zero(NBNEUR); VectorXi OneV = VectorXi::Constant(NBNEUR, 1); 
-    VectorXd ZeroLGN = VectorXd::Zero(FFRFSIZE); VectorXd OneLGN = VectorXd::Constant(FFRFSIZE, 1.0); 
+    VectorXi ZeroV = VectorXi::Zero(NBNEUR); VectorXi OneV = VectorXi::Constant(NBNEUR, 1);
+    VectorXd ZeroLGN = VectorXd::Zero(FFRFSIZE); VectorXd OneLGN = VectorXd::Constant(FFRFSIZE, 1.0);
     VectorXd z = VectorXd::Zero(NBNEUR);
     VectorXd wadap = VectorXd::Zero(NBNEUR);
     VectorXd vthresh = VectorXd::Constant(NBNEUR, VTREST);
@@ -361,11 +361,11 @@ int main(int argc, char* argv[])
     VectorXd sumw = VectorXd::Zero(NBPRES);
     MatrixXi resps = MatrixXi::Zero(NBNEUR, NBRESPS);
     MatrixXd respssumv = MatrixXd::Zero(NBNEUR, NBRESPS);
-    
+
     double mixvals[NBMIXES]; for (int nn=0; nn < NBMIXES; nn++) mixvals[nn] = (double)nn / (double)(NBMIXES - 1); // NBMIXES values equally spaced from 0 to 1 inclusive.
 
     fstream myfile;
-            
+
     // If no-inhib mode, remove all inhibitory connections:
     if (NOINH)
         w.rightCols(NBI).setZero();
@@ -397,12 +397,12 @@ int main(int argc, char* argv[])
                 mydelay = 1;
             // cout << mydelay << " ";
             delays[nj][ni] = mydelay;
-            incomingspikes[ni][nj] = VectorXi::Zero(mydelay); 
+            incomingspikes[ni][nj] = VectorXi::Zero(mydelay);
         }
     }
- 
-    // NOTE: We implement the machinery for feedforward delays, but they are NOT used (see below).   
-    //myfile.open("delays.txt", ios::trunc | ios::out);  
+
+    // NOTE: We implement the machinery for feedforward delays, but they are NOT used (see below).
+    //myfile.open("delays.txt", ios::trunc | ios::out);
     for (int ni=0; ni < NBNEUR; ni++){
         for (int nj=0; nj < FFRFSIZE; nj++){
 
@@ -418,7 +418,7 @@ int main(int argc, char* argv[])
                 mydelay = 1;
             delaysFF[nj][ni] = mydelay;
             //myfile << delaysFF[nj][ni] << " ";
-            incomingFFspikes[ni][nj] = VectorXi::Zero(mydelay); 
+            incomingFFspikes[ni][nj] = VectorXi::Zero(mydelay);
         }
     }
     //myfile << endl; myfile.close();
@@ -435,23 +435,23 @@ int main(int argc, char* argv[])
     for (int numpres=0; numpres < NBPRES; numpres++)
     {
         // Where are we in the data file?
-        int posindata = ((numpres % nbpatchesinfile) * FFRFSIZE / 2 ); 
+        int posindata = ((numpres % nbpatchesinfile) * FFRFSIZE / 2 );
         if (PHASE == PULSE)
-            posindata = ((STIM1 % nbpatchesinfile) * FFRFSIZE / 2 ); 
+            posindata = ((STIM1 % nbpatchesinfile) * FFRFSIZE / 2 );
         if (posindata >= totaldatasize - FFRFSIZE / 2) { cerr << "Error: tried to read beyond data end.\n"; return -1; }
 
         //cout << posindata << endl;
 
 
         // Extracting the image data for this frame presentation, and preparing the LGN / FF output rates (notice the log-transform):
-        
+
         for (int nn=0; nn < FFRFSIZE / 2; nn++)
         {
             lgnrates(nn) = log(1.0 + ((double)imagedata[posindata+nn] > 0 ? (double)imagedata[posindata+nn] : 0));
             lgnrates(nn + FFRFSIZE / 2) = log(1.0 + ((double)imagedata[posindata+nn] < 0 ? -(double)imagedata[posindata+nn] : 0));
         }
         lgnrates /= lgnrates.maxCoeff(); // Scale by max! The inputs are scaled to have a maximum of 1 (multiplied by INPUTMULT below)
-   
+
 
 
         if (PHASE == MIXING)
@@ -462,7 +462,7 @@ int main(int argc, char* argv[])
             double mixval1 = mixvals[numpres % NBMIXES]; double mixval2 = 1.0-mixval1; double mixedinput = 0;
             if ((numpres / NBMIXES) == 1 ) mixval2 = 0;
             if ((numpres / NBMIXES) == 2 ) mixval1 = 0;
-            
+
             for (int nn=0; nn < FFRFSIZE / 2; nn++)
             {
                 lgnratesS1(nn) = log(1.0 + ((double)imagedata[posindata1+nn] > 0 ? (double)imagedata[posindata1+nn] : 0));  lgnratesS1(nn + FFRFSIZE / 2) = log(1.0 + ((double)imagedata[posindata1+nn] < 0 ? -(double)imagedata[posindata1+nn] : 0));
@@ -473,16 +473,16 @@ int main(int argc, char* argv[])
             }
             lgnratesS1 /= lgnratesS1.maxCoeff(); // Scale by max!!
             lgnratesS2 /= lgnratesS2.maxCoeff(); // Scale by max!!
-            
+
             for (int nn=0; nn < FFRFSIZE ; nn++)
                 lgnrates(nn) = mixval1 * lgnratesS1(nn) + mixval2 * lgnratesS2(nn);
-            
+
         }
 
 
         INPUTMULT = 150.0;
         INPUTMULT *= 2.0;
-        
+
         lgnrates *= INPUTMULT; // We put inputmult here to ensure that it is reflected in the actual number of incoming spikes
 
         lgnrates *= (dt/1000.0);  // LGN rates from the pattern file are expressed in Hz. We want it in rate per dt, and dt itself is expressed in ms.
@@ -505,7 +505,7 @@ int main(int argc, char* argv[])
         {
 
             // We determine FF spikes, based on the specified lgnrates:
-            
+
             lgnfiringsprev = lgnfirings;
 
             if (((PHASE == PULSE) && (numstepthispres >= (double)(PULSESTART)/dt) && (numstepthispres < (double)(PULSESTART + PULSETIME)/dt)) // In the PULSE case, inputs only fire for a short period of time
@@ -514,14 +514,14 @@ int main(int argc, char* argv[])
                     lgnfirings(nn) = (rand() / (double)RAND_MAX < abs(lgnrates(nn)) ? 1.0 : 0.0); // Note that this may go non-poisson if the specified lgnrates are too high (i.e. not << 1.0)
             else
                 lgnfirings.setZero();
-            
-            
+
+
             if (PHASE == SPONTANEOUS)
                 lgnfirings.setZero();
 
 
             // We compute the feedforward input:
- 
+
 
                 Iff.setZero();
 
@@ -577,7 +577,7 @@ int main(int argc, char* argv[])
 
                     LatInput(ni) += w(ni, nj) * incomingspikes[ni][nj](numstep % delays[nj][ni]);
                         spikesthisstep(ni, nj) = 1;
-                    // We erase any incoming spikes for this synapse/timestep 
+                    // We erase any incoming spikes for this synapse/timestep
                     incomingspikes[ni][nj](numstep % delays[nj][ni]) = 0;
                     }
                 }
@@ -611,18 +611,18 @@ int main(int argc, char* argv[])
 
             v = (isspiking.array() > 0).select(VPEAK-.001, v); // Currently-spiking neurons are clamped at VPEAK.
             v = (isspiking.array() == 1).select(VRESET, v); //  Neurons that have finished their spiking are set to VRESET.
-            
+
             // Updating some AdEx / plasticity variables
             z = (isspiking.array() == 1).select(Isp, z);
             vthresh = (isspiking.array() == 1).select(VTMAX, vthresh);
             wadap = (isspiking.array() == 1).select(wadap.array() + B, wadap.array());
-            
+
             // Spiking period elapsing... (in paractice, this is not really needed since the spiking period NBSPIKINGSTEPS is set to 1 for all current experiments)
             isspiking = (isspiking.array() - 1).cwiseMax(0);
 
             v = v.cwiseMax(MINV);
             refractime = (refractime.array() - dt).cwiseMax(0);
-            
+
 
             // "correct" version: Firing neurons are crested / clamped at VPEAK, will be reset to VRESET  after the spiking time has elapsed.
             firingsprev = firings;
@@ -649,21 +649,21 @@ int main(int argc, char* argv[])
             //firings = (v.array() > vthresh.array()).select(OneV, ZeroV);
             //v = (firings.array() > 0).select(VRESET, v);
 
-            
+
             // AdEx variables update:
 
             //wadap = (isspiking.array() > 0).select(wadap.array(), wadap.array() + (dt / TAUADAP) * (A * (v.array() - Eleak) - wadap.array())); // clopathlike (while spiking, don't modify wadap.
             wadap =  wadap.array() + (dt / TAUADAP) * (A * (v.array() - Eleak) - wadap.array());
             z = z + (dt / TAUZ) * -1.0 * z;
             vthresh = vthresh.array() + (dt / TAUVTHRESH) * (-1.0 * vthresh.array() + VTREST);
-            
+
             // Wrong - using the raw v rather than "depolarization" v-vleak (or v-vthresh)
             //vlongtrace = vlongtrace + (dt / TAUVLONGTRACE) * (v - vlongtrace);
 
             // Correct: using depolarization (or more precisely depolarization above THETAVLONGTRACE))
             vlongtrace += (dt / TAUVLONGTRACE) * ((vprevprev.array() - THETAVLONGTRACE).cwiseMax(0).matrix() - vlongtrace);
             vlongtrace = vlongtrace.cwiseMax(0); // Just in case.
-            
+
             // This is also wrong - the dt/tau should not apply to the increments (firings / lgnfirings). However that should only be a strict constant multiplication, which could be included into the ALTP/ALTP constants.
             /*
             xplast_lat += (dt / TAUXPLAST) * (firings.cast<double>() - xplast_lat);
@@ -675,13 +675,13 @@ int main(int argc, char* argv[])
             //xplast_lat = xplast_lat + firings.cast<double>() - (dt / TAUXPLAST) * xplast_lat;
             //xplast_ff = xplast_ff + lgnfirings - (dt / TAUXPLAST) *  xplast_ff;
 
-            //Clopath-like version - the firings are also divided by tauxplast. Might cause trouble if dt is modified? 
+            //Clopath-like version - the firings are also divided by tauxplast. Might cause trouble if dt is modified?
             xplast_lat = xplast_lat + firings.cast<double>() / TAUXPLAST - (dt / TAUXPLAST) * xplast_lat;
             xplast_ff = xplast_ff + lgnfirings / TAUXPLAST - (dt / TAUXPLAST) *  xplast_ff;
 
             vneg = vneg + (dt / TAUVNEG) * (vprevprev - vneg);
             vpos = vpos + (dt / TAUVPOS) * (vprevprev - vpos);
-            
+
 
             if ((PHASE == LEARNING)  && (numpres >= 401) )
             {
@@ -711,7 +711,7 @@ int main(int argc, char* argv[])
                         for (int nn=0; nn < NBE; nn++)
                             if (spikesthisstep(nn, syn) > 0)
                                 w(nn, syn) +=  EachNeurLTD(nn) * (1.0 + w(nn,syn) * WPENSCALE);
-                        
+
                 w = w - w.cwiseProduct(MatrixXd::Identity(NBNEUR, NBNEUR)); // Diagonal lateral weights are 0!
                 wff = wff.cwiseMax(0);
                 w.leftCols(NBE) = w.leftCols(NBE).cwiseMax(0);
@@ -725,8 +725,8 @@ int main(int argc, char* argv[])
             //vs.col(numstep) = v;
             //spikes.col(numstep) = firings;
             resps.col(numpres % NBRESPS) += firings;
-            //respssumv.col(numpres % NBRESPS) += v.cwiseMin(vthresh); // We only record subthreshold potentials ! 
-            respssumv.col(numpres % NBRESPS) += v.cwiseMin(VTMAX); // We only record subthreshold potentials ! 
+            //respssumv.col(numpres % NBRESPS) += v.cwiseMin(vthresh); // We only record subthreshold potentials !
+            respssumv.col(numpres % NBRESPS) += v.cwiseMin(VTMAX); // We only record subthreshold potentials !
             lastnspikes.col(numstep % NBLASTSPIKESSTEPS) = firings;
             lastnv.col(numstep % NBLASTSPIKESSTEPS) = v;
 
@@ -851,7 +851,7 @@ MatrixXd poissonMatrix(const MatrixXd& lambd)
     k = k.array() - 1;
     return k;
 }
-/* 
+/*
  // Test code for poissonMatrix:
     double SIZ=19;
     srand(time(NULL));
@@ -878,7 +878,7 @@ int poissonScalar(const double lambd)
     do{
         k = k + 1;
         p = p * (double)rand() / (double)RAND_MAX;
-    } 
+    }
     while(p > L);
     return (k-1);
 }
@@ -912,4 +912,3 @@ void readWeights(MatrixXd& wgt, string fname)
             wgt(rr, cc) = wdata[idx++];
     cout << "Done!" <<endl;
 }
-
