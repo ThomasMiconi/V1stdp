@@ -328,7 +328,7 @@ int main(int argc, char* argv[])
     VectorXd vneg = v;
     VectorXd vpos = v;
     VectorXd vprev = v;
-    VectorXd vprevprev = v;
+    //VectorXd vprevprev = v;
 
     // Correct initialization for vlongtrace.
     VectorXd vlongtrace = (v.array() - THETAVLONGTRACE).cwiseMax(0);
@@ -593,7 +593,7 @@ int main(int argc, char* argv[])
             I = Iff + Ilat + posnoisein.col(numstep % NBNOISESTEPS) + negnoisein.col(numstep % NBNOISESTEPS);  //- InhibVect;
 
             vprev = v;
-            vprevprev = vprev;
+            //vprevprev = vprev;
 
             // AdEx  neurons:
             if (NOSPIKE)
@@ -661,7 +661,7 @@ int main(int argc, char* argv[])
             //vlongtrace = vlongtrace + (dt / TAUVLONGTRACE) * (v - vlongtrace);
 
             // Correct: using depolarization (or more precisely depolarization above THETAVLONGTRACE))
-            vlongtrace += (dt / TAUVLONGTRACE) * ((vprevprev.array() - THETAVLONGTRACE).cwiseMax(0).matrix() - vlongtrace);
+            vlongtrace += (dt / TAUVLONGTRACE) * ((vprev.array() - THETAVLONGTRACE).cwiseMax(0).matrix() - vlongtrace);
             vlongtrace = vlongtrace.cwiseMax(0); // Just in case.
 
             // This is also wrong - the dt/tau should not apply to the increments (firings / lgnfirings). However that should only be a strict constant multiplication, which could be included into the ALTP/ALTP constants.
@@ -679,8 +679,8 @@ int main(int argc, char* argv[])
             xplast_lat = xplast_lat + firings.cast<double>() / TAUXPLAST - (dt / TAUXPLAST) * xplast_lat;
             xplast_ff = xplast_ff + lgnfirings / TAUXPLAST - (dt / TAUXPLAST) *  xplast_ff;
 
-            vneg = vneg + (dt / TAUVNEG) * (vprevprev - vneg);
-            vpos = vpos + (dt / TAUVPOS) * (vprevprev - vpos);
+            vneg = vneg + (dt / TAUVNEG) * (vprev - vneg);
+            vpos = vpos + (dt / TAUVPOS) * (vprev - vpos);
 
 
             if ((PHASE == LEARNING)  && (numpres >= 401) )
