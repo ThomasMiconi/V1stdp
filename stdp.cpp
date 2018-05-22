@@ -294,12 +294,12 @@ int main(int argc, char* argv[])
 
     // Note that delays indices are arranged in "from"-"to" order (different from incomingspikes[i][j]. where i is the target neuron and j is the source synapse)
     int delays[NBNEUR][NBNEUR];
-    int delaysFF[FFRFSIZE][NBNEUR];
+    //int delaysFF[FFRFSIZE][NBNEUR];
 
 
     // The incoming spikes (both lateral and FF) are stored in an array of vectors (one per neuron/incoming synapse); each vector is used as a circular array, containing the incoming spikes at this synapse at successive timesteps:
     VectorXi incomingspikes[NBNEUR][NBNEUR];
-    VectorXi incomingFFspikes[NBNEUR][FFRFSIZE];
+    //VectorXi incomingFFspikes[NBNEUR][FFRFSIZE];
 
 
     VectorXd v =  VectorXd::Constant(NBNEUR, -70.5); // VectorXd::Zero(NBNEUR); // -70.5 is approximately the resting potential of the Izhikevich neurons, as it is of the AdEx neurons used in Clopath's experiments
@@ -334,7 +334,7 @@ int main(int argc, char* argv[])
     VectorXd EachNeurLTD = VectorXd::Zero(NBNEUR);
     VectorXd EachNeurLTP = VectorXd::Zero(NBNEUR);
 
-    MatrixXi spikesthisstepFF(NBNEUR, FFRFSIZE);
+    //    MatrixXi spikesthisstepFF(NBNEUR, FFRFSIZE);
     MatrixXi spikesthisstep(NBNEUR, NBNEUR);
 
     double ALTDS[NBNEUR]; for (int nn=0; nn < NBNEUR; nn++) ALTDS[nn] = BASEALTD + RANDALTD*( (double)rand() / (double)RAND_MAX );
@@ -387,6 +387,7 @@ int main(int argc, char* argv[])
         }
     }
 
+    /*
     // NOTE: We implement the machinery for feedforward delays, but they are NOT used (see below).
     //myfile.open("delays.txt", ios::trunc | ios::out);
     for (int ni=0; ni < NBNEUR; ni++){
@@ -407,6 +408,7 @@ int main(int argc, char* argv[])
             incomingFFspikes[ni][nj] = VectorXi::Zero(mydelay);
         }
     }
+    */
     //myfile << endl; myfile.close();
 
     // Initializations done, let's get to it!
@@ -481,6 +483,11 @@ int main(int argc, char* argv[])
         // Stimulus presentation
         for (int numstepthispres=0; numstepthispres < NBSTEPSPERPRES; numstepthispres++)
         {
+            //Resets
+            Iff.setZero();
+            vprev = v;
+            //vprevprev = vprev;
+            spikesthisstep.setZero();
 
             // We determine FF spikes, based on the specified lgnrates:
 
@@ -497,8 +504,6 @@ int main(int argc, char* argv[])
                 lgnfirings.setZero();
 
             // We compute the feedforward input:
-            Iff.setZero();
-
                 // Using delays for FF connections from LGN makes the system MUCH slower, and doesn't change much. So we don't.
                 /*
                 // Compute the FF input from incoming spikes from LGN... as set in the *previous* timestep...
@@ -534,7 +539,7 @@ int main(int argc, char* argv[])
 
             VectorXd LatInput = VectorXd::Zero(NBNEUR);
 
-            spikesthisstep.setZero();
+            //spikesthisstep.setZero();
             for (int ni=0; ni< NBNEUR; ni++)
                 for (int nj=0; nj< NBNEUR; nj++)
                 {
@@ -563,8 +568,7 @@ int main(int argc, char* argv[])
             // Total input (FF + lateral + frozen noise):
             I = Iff + Ilat + posnoisein.col(numstep % NBNOISESTEPS) + negnoisein.col(numstep % NBNOISESTEPS);  //- InhibVect;
 
-            vprev = v;
-            //vprevprev = vprev;
+            //vprev = v;
 
             // AdEx  neurons:
             if (NOSPIKE)
