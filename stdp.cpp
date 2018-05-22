@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
 
 // Initializations.
     VectorXi firings = VectorXi::Zero(NBNEUR);
-    VectorXi firingsprev = VectorXi::Zero(NBNEUR);
+    //VectorXi firingsprev = VectorXi::Zero(NBNEUR);
     VectorXd Iff = VectorXd::Zero(NBNEUR);
     VectorXd Ilat = VectorXd::Zero(NBNEUR);
     VectorXd I;
@@ -355,10 +355,10 @@ int main(int argc, char* argv[])
     VectorXd lgnratesS1 = VectorXd::Zero(FFRFSIZE);
     VectorXd lgnratesS2 = VectorXd::Zero(FFRFSIZE);
     VectorXd lgnfirings = VectorXd::Zero(FFRFSIZE);
-    VectorXd lgnfiringsprev = VectorXd::Zero(FFRFSIZE);
+    //VectorXd lgnfiringsprev = VectorXd::Zero(FFRFSIZE);
 
-    VectorXd sumwff = VectorXd::Zero(NBPRES);
-    VectorXd sumw = VectorXd::Zero(NBPRES);
+    //VectorXd sumwff = VectorXd::Zero(NBPRES);
+    //VectorXd sumw = VectorXd::Zero(NBPRES);
     MatrixXi resps = MatrixXi::Zero(NBNEUR, NBRESPS);
     MatrixXd respssumv = MatrixXd::Zero(NBNEUR, NBRESPS);
 
@@ -493,9 +493,9 @@ int main(int argc, char* argv[])
         v.fill(Eleak);
         resps.col(numpres % NBRESPS).setZero();
         lgnfirings.setZero();
-        lgnfiringsprev.setZero();
+        //        lgnfiringsprev.setZero();
         firings.setZero();
-        firingsprev.setZero();
+        //        firingsprev.setZero();
         for (int ni=0; ni < NBNEUR ; ni++)
             for (int nj=0; nj < NBNEUR ; nj++)
                 incomingspikes[ni][nj].fill(0);
@@ -506,7 +506,7 @@ int main(int argc, char* argv[])
 
             // We determine FF spikes, based on the specified lgnrates:
 
-            lgnfiringsprev = lgnfirings;
+            //            lgnfiringsprev = lgnfirings;
 
             if (((PHASE == PULSE) && (numstepthispres >= (double)(PULSESTART)/dt) && (numstepthispres < (double)(PULSESTART + PULSETIME)/dt)) // In the PULSE case, inputs only fire for a short period of time
                     || ((PHASE != PULSE) && (numstepthispres < NBSTEPSPERPRES - ((double)TIMEZEROINPUT / dt))))   // Otherwise, inputs only fire until the 'relaxation' period at the end of each presentation
@@ -625,7 +625,7 @@ int main(int argc, char* argv[])
 
 
             // "correct" version: Firing neurons are crested / clamped at VPEAK, will be reset to VRESET  after the spiking time has elapsed.
-            firingsprev = firings;
+            //firingsprev = firings;
             if (!NOSPIKE)
             {
                 firings = (v.array() > VPEAK).select(OneV, ZeroV);
@@ -736,8 +736,8 @@ int main(int argc, char* argv[])
 
 
 
-        sumwff(numpres) = wff.sum();
-        sumw(numpres) = w.sum();
+        //        sumwff(numpres) = wff.sum();
+        //        sumw(numpres) = w.sum();
         if (numpres % 100 == 0)
         {
         cout << "Presentation " << numpres << " / " << NBPRES << endl; if (numpres == 200) cout << "TIME: " << (double)(clock() - tic) / (double)CLOCKS_PER_SEC <<endl;
