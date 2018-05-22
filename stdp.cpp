@@ -17,8 +17,9 @@
 
 #define dt 1.0 // NOTE: Don't attempt to just modify the dt without reading the code below, as it will likely break things.
 
-#define BASEALTD (14e-5 * 1.5 * 1.0)
-#define RANDALTD 0.0
+#define BASEALTD (14e-5 * 1.5 * 1.0) // used only for altds generation
+#define RANDALTD 0.0 //used only for altds generation
+
 #define ALTP (8e-5  * .008  * 1.0 ) // Note ALTPMULT below
 #define MINV -80.0
 #define TAUVLONGTRACE 20000
@@ -53,8 +54,8 @@
 #define FFRFSIZE (2 * PATCHSIZE * PATCHSIZE)
 
 // Inhibition parameters
-#define TAUINHIB 10 // in ms
-#define ALPHAINHIB .6 // .6
+//#define TAUINHIB 10 // in ms
+//#define ALPHAINHIB .6 // .6
 
 #define NEGNOISERATE 0.0 // in KHz (expected number of thousands of VSTIM received per second through noise)
 #define POSNOISERATE 1.8 // in KHz (expected number of thousands of VSTIM received per second through noise)
