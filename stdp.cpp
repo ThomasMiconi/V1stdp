@@ -30,8 +30,6 @@
 
 #define NBNEUR (NBE + NBI)
 
-
-
 #define WFFINITMAX .1
 #define WFFINITMIN 0.0
 #define MAXW 50.0
@@ -75,12 +73,11 @@
 #define VPEAK 20  // Also in mV
 #define VRESET Eleak
 
-
 #define THETAVLONGTRACE  -45.3 // -45.3 //MINV // Eleak // VTMAX
 
 #define MAXDELAYDT 20
 #define NBSPIKINGSTEPS 1 // (3.0 / dt) // Number of steps that a spike should take - i.e. spiking time (in ms) / dt.
-#define REFRACTIME  0 // (dt-.001)
+//#define REFRACTIME  0 // (dt-.001)
 #define THETAVPOS -45.3
 #define THETAVNEG Eleak
 #define TAUXPLAST 15.0 // all 'tau' constants are in ms
@@ -90,12 +87,8 @@
 
 #define NBNOISESTEPS 73333
 
-
 using namespace Eigen;
 using namespace std;
-
-
-
 
 MatrixXd poissonMatrix(const MatrixXd& lambd);
 MatrixXd poissonMatrix2(const MatrixXd& lambd);
@@ -132,7 +125,6 @@ int main(int argc, char* argv[])
 
     MatrixXd w = MatrixXd::Zero(NBNEUR, NBNEUR);
     MatrixXd wff = MatrixXd::Zero(NBNEUR, FFRFSIZE);
-
 
     // These constants are only used for learning:
     double WPENSCALE = .33;
@@ -342,7 +334,7 @@ int main(int argc, char* argv[])
     VectorXd z = VectorXd::Zero(NBNEUR);
     VectorXd wadap = VectorXd::Zero(NBNEUR);
     VectorXd vthresh = VectorXd::Constant(NBNEUR, VTREST);
-    VectorXd refractime  = VectorXd::Zero(NBNEUR);
+    //    VectorXd refractime  = VectorXd::Zero(NBNEUR);
     VectorXi isspiking = VectorXi::Zero(NBNEUR);
     VectorXd EachNeurLTD = VectorXd::Zero(NBNEUR);
     VectorXd EachNeurLTP = VectorXd::Zero(NBNEUR);
@@ -622,7 +614,7 @@ int main(int argc, char* argv[])
             isspiking = (isspiking.array() - 1).cwiseMax(0);
 
             v = v.cwiseMax(MINV);
-            refractime = (refractime.array() - dt).cwiseMax(0);
+            //            refractime = (refractime.array() - dt).cwiseMax(0);
 
 
             // "correct" version: Firing neurons are crested / clamped at VPEAK, will be reset to VRESET  after the spiking time has elapsed.
@@ -631,7 +623,7 @@ int main(int argc, char* argv[])
             {
                 firings = (v.array() > VPEAK).select(OneV, ZeroV);
                 v = (firings.array() > 0).select(VPEAK, v);
-                refractime = (firings.array() > 0).select(REFRACTIME, refractime); // In practice, REFRACTIME is set to 0 for all current experiments.
+                //                refractime = (firings.array() > 0).select(REFRACTIME, refractime); // In practice, REFRACTIME is set to 0 for all current experiments.
                 isspiking = (firings.array() > 0).select(NBSPIKINGSTEPS, isspiking);
 
                 // Send the spike through the network. Remember that incomingspikes is a circular array.
