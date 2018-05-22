@@ -261,9 +261,6 @@ int main(int argc, char* argv[])
     MatrixXi lastnspikes = MatrixXi::Zero(NBNEUR, NBLASTSPIKESSTEPS);
     MatrixXd lastnv = MatrixXd::Zero(NBNEUR, NBLASTSPIKESSTEPS);
 
-
-
-
     cout << "Reading input data...." << endl;
     int nbpatchesinfile = 0, totaldatasize = 0;
 
@@ -284,8 +281,6 @@ int main(int argc, char* argv[])
     nbpatchesinfile = totaldatasize / (PATCHSIZE * PATCHSIZE) - 1; // The -1 is just there to ignore the last patch (I think)
     cout << "Total data size (number of values): " << totaldatasize << ", number of patches in file: " << nbpatchesinfile << endl;
     cout << imagedata[5654] << " " << imagedata[6546] << " " << imagedata[9000] << endl;
-
-
 
     // The noise excitatory input is a Poisson process (separate for each cell) with a constant rate (in KHz / per ms)
     // We store it as "frozen noise" to save time.
@@ -363,8 +358,6 @@ int main(int argc, char* argv[])
     if (NOINH)
         w.rightCols(NBI).setZero();
 
-
-
     // We generate the delays:
 
     // We use a trick to generate an exponential distribution, median should be small (maybe 2-4ms)
@@ -416,9 +409,6 @@ int main(int argc, char* argv[])
     }
     //myfile << endl; myfile.close();
 
-
-
-
     // Initializations done, let's get to it!
 
     tic = clock();
@@ -445,8 +435,6 @@ int main(int argc, char* argv[])
         }
         lgnrates /= lgnrates.maxCoeff(); // Scale by max! The inputs are scaled to have a maximum of 1 (multiplied by INPUTMULT below)
 
-
-
         if (PHASE == MIXING)
         {
             int posindata1 = ((STIM1 % nbpatchesinfile) * FFRFSIZE / 2 ); if (posindata1 >= totaldatasize - FFRFSIZE / 2) { cerr << "Error: tried to read beyond data end.\n"; return -1; }
@@ -472,15 +460,12 @@ int main(int argc, char* argv[])
 
         }
 
-
         INPUTMULT = 150.0;
         INPUTMULT *= 2.0;
 
         lgnrates *= INPUTMULT; // We put inputmult here to ensure that it is reflected in the actual number of incoming spikes
 
         lgnrates *= (dt/1000.0);  // LGN rates from the pattern file are expressed in Hz. We want it in rate per dt, and dt itself is expressed in ms.
-
-
 
         // At the beginning of every presentation, we reset everything ! (it is important for the random-patches case which tends to generate epileptic self-sustaining firing; 'normal' learning doesn't need it.)
         v.fill(Eleak);
@@ -508,15 +493,11 @@ int main(int argc, char* argv[])
             else
                 lgnfirings.setZero();
 
-
             if (PHASE == SPONTANEOUS)
                 lgnfirings.setZero();
 
-
             // We compute the feedforward input:
-
-
-                Iff.setZero();
+            Iff.setZero();
 
                 // Using delays for FF connections from LGN makes the system MUCH slower, and doesn't change much. So we don't.
                 /*
@@ -549,8 +530,6 @@ int main(int argc, char* argv[])
             // This, which ignores FF delays, is much faster.... MAtrix multiplications courtesy of the Eigen library.
             Iff =  wff * lgnfirings * VSTIM;
 
-
-
             // Now we compute the lateral inputs. Remember that incomingspikes is a circular array.
 
             VectorXd LatInput = VectorXd::Zero(NBNEUR);
@@ -574,7 +553,6 @@ int main(int argc, char* argv[])
                     incomingspikes[ni][nj](numstep % delays[nj][ni]) = 0;
                     }
                 }
-
 
             Ilat = LATCONNMULT * VSTIM * LatInput;
 
@@ -634,14 +612,11 @@ int main(int argc, char* argv[])
 
                     }
                 }
-
-
             }
 
             // "Wrong" version: firing if above threshold, immediately reset at Vreset.
             //firings = (v.array() > vthresh.array()).select(OneV, ZeroV);
             //v = (firings.array() > 0).select(VRESET, v);
-
 
             // AdEx variables update:
 
@@ -674,7 +649,6 @@ int main(int argc, char* argv[])
 
             vneg = vneg + (dt / TAUVNEG) * (vprev - vneg);
             vpos = vpos + (dt / TAUVPOS) * (vprev - vpos);
-
 
             if ((PHASE == LEARNING)  && (numpres >= 401) )
             {
@@ -726,7 +700,6 @@ int main(int argc, char* argv[])
             // Tempus fugit.
             numstep++;
         }
-
 
 
         //        sumwff(numpres) = wff.sum();
@@ -805,9 +778,6 @@ int main(int argc, char* argv[])
     }
 
 }
-
-
-
 
 
 /*
