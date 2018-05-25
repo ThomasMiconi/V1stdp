@@ -132,7 +132,8 @@ int main(int argc, char* argv[])
     double WEI_MAX = 20.0 * 4.32 / LATCONNMULT ; //1.5
     double WIE_MAX = .5 * 4.32 / LATCONNMULT;
     double WII_MAX = .5 * 4.32 / LATCONNMULT;
-    int NBPATTERNS, PRESTIME, NBPRES, NBSTEPSPERPRES, NBSTEPS;
+    int NBPATTERNS, PRESTIME, NBPRES, NBSTEPSPERPRES;
+    //int NBSTEPS;
 
     // Command line parameters handling
 
@@ -256,7 +257,7 @@ int main(int argc, char* argv[])
     cout << "ALTPMULT: " << ALTPMULT<< endl;
     NBSTEPSPERPRES = (int)(PRESTIME / dt);
     NBLASTSPIKESSTEPS = NBLASTSPIKESPRES * NBSTEPSPERPRES;
-    NBSTEPS = NBSTEPSPERPRES * NBPRES;
+    //NBSTEPS = NBSTEPSPERPRES * NBPRES;
 
     MatrixXi lastnspikes = MatrixXi::Zero(NBNEUR, NBLASTSPIKESSTEPS);
     MatrixXd lastnv = MatrixXd::Zero(NBNEUR, NBLASTSPIKESSTEPS);
