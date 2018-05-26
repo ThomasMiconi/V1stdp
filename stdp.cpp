@@ -485,7 +485,7 @@ int main(int argc, char* argv[])
         for (int numstepthispres=0; numstepthispres < NBSTEPSPERPRES; numstepthispres++)
         {
             //Resets
-            Iff.setZero();
+            //Iff.setZero();
             vprev = v;
             //vprevprev = vprev;
             spikesthisstep.setZero();
@@ -570,7 +570,7 @@ int main(int argc, char* argv[])
             I = Iff + Ilat + posnoisein.col(numstep % NBNOISESTEPS) + negnoisein.col(numstep % NBNOISESTEPS);  //- InhibVect;
 
             //vprev = v;
-
+//PRE SPIKE UPDATE
             // AdEx  neurons:
             if (NOSPIKE)
             {
@@ -587,6 +587,7 @@ int main(int argc, char* argv[])
 
             v = (isspiking.array() > 0).select(VPEAK-.001, v); // Currently-spiking neurons are clamped at VPEAK.
             v = (isspiking.array() == 1).select(VRESET, v); //  Neurons that have finished their spiking are set to VRESET.
+            v = v.cwiseMax(MINV);
 
             // Updating some AdEx / plasticity variables
             z = (isspiking.array() == 1).select(Isp, z);
@@ -596,10 +597,10 @@ int main(int argc, char* argv[])
             // Spiking period elapsing... (in paractice, this is not really needed since the spiking period NBSPIKINGSTEPS is set to 1 for all current experiments)
             isspiking = (isspiking.array() - 1).cwiseMax(0);
 
-            v = v.cwiseMax(MINV);
+
             //            refractime = (refractime.array() - dt).cwiseMax(0);
 
-
+//SPIKE UPDATE
             // "correct" version: Firing neurons are crested / clamped at VPEAK, will be reset to VRESET  after the spiking time has elapsed.
             //firingsprev = firings;
             if (!NOSPIKE)
@@ -618,7 +619,7 @@ int main(int argc, char* argv[])
                     }
                 }
             }
-
+//POST SPIKE UPDATE
             // "Wrong" version: firing if above threshold, immediately reset at Vreset.
             //firings = (v.array() > vthresh.array()).select(OneV, ZeroV);
             //v = (firings.array() > 0).select(VRESET, v);
@@ -654,7 +655,7 @@ int main(int argc, char* argv[])
 
             vneg = vneg + (dt / TAUVNEG) * (vprev - vneg);
             vpos = vpos + (dt / TAUVPOS) * (vprev - vpos);
-
+//LEARNING
             if ((PHASE == LEARNING)  && (numpres >= 401) )
             {
 
@@ -691,7 +692,7 @@ int main(int argc, char* argv[])
                 wff = wff.cwiseMin(MAXW);
                 w = w.cwiseMin(MAXW);
             }
-
+//LOGGING
             // Storing some indicator variablkes...
 
             //vs.col(numstep) = v;
