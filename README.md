@@ -12,9 +12,9 @@ as well as realistic feedforward receptive fields.
 
 
 
-The entire code is contained in one program: stdp.cpp. It requires the Eigen v3 algebra library, which is very easy to install since it's source-only. After dowloading and unzipping the Eigen library, you can compile stdp.cpp as follows (be sure to adapt to your own compiler options and directory structure):
+The entire code is contained in one program: stdp.cpp. It requires the Eigen v3 algebra library, which is very easy to install since it's source-only. After dowloading and unzipping the Eigen library into the `$EIGEN_DIR` directory, you can compile stdp.cpp as follows (be sure to adapt to your own compiler options and directory structure):
 
-`g++ -I $EIGEN_DIR/Eigen/ -O3 -std=c++11 stdp.cpp -o stdp`
+`g++ -I $EIGEN_DIR/ -O3 -std=c++11 stdp.cpp -o stdp`
 
 Just run `./stdp learn latconnmult 4.0 wie .6 wpenscale .33 altpmult .75 delayparam 5.0` (as specified in the COMMAND.sh file) to build a network. The code is configured to run the full 1M presentations, which could take several days. However, good results are evident by ~300K evaluations.
 
