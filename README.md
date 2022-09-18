@@ -16,7 +16,7 @@ The entire code is contained in one program: stdp.cpp. It requires the Eigen v3 
 
 `g++ -I $EIGEN_DIR/ -O3 -std=c++11 stdp.cpp -o stdp`
 
-Just run `./stdp learn latconnmult 4.0 wie .6 wpenscale .33 altpmult .75 delayparam 5.0` (as specified in the COMMAND.sh file) to build a network. The code is configured to run the full 1M presentations, which could take several days. However, good results are evident by ~300K evaluations.
+Just run `./stdp learn` to build a network. The code is configured to run the full 1M presentations, which could take several days. However, good results are evident by ~300K evaluations.
 
 We also include additional Matlab programs that generate the image stimuli (makepatches.m) and produce figures (showw.m, analyzewlat.m and makefigures.m)
 
