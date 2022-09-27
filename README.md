@@ -1,4 +1,4 @@
-This is the code for the upcoming paper, "Spontaneous emergence of fast attractor dynamics in a model of developing primary visual cortex", by T. Miconi, J. McKinstry and G. M. Edelman, to appear in Nature Communications.
+This is the code for the paper ["Spontaneous emergence of fast attractor dynamics in a model of developing primary visual cortex"](https://www.nature.com/articles/ncomms13208), by T. Miconi, J. McKinstry and G. M. Edelman (published in *Nature Communications*, vol. 7, n. 13208, 2016).
 
 This code simulates a small patch of cortex, containing 100 principal neurons
 and 20 inhibitory neurons. Excitatory neurons have voltage-based spike-timing
