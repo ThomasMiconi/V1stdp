@@ -16,9 +16,11 @@ The entire code is contained in one program: stdp.cpp. It requires the Eigen v3 
 
 `g++ -I $EIGEN_DIR/ -O3 -std=c++11 stdp.cpp -o stdp`
 
-Just run `./stdp learn` to build a network. The code is configured to run the full 1M presentations, which could take several days. However, good results are evident by ~300K evaluations.
+The present code base includes pre-trained weights (`w.*` and `wff.*`). If you want to run the full training yourself, just run `./stdp learn` to train a network from scratch. The code is configured to run 500K presentations, which could take about a day. However, good results are evident by ~300K evaluations.
 
-We also include additional Matlab programs that generate the image stimuli (makepatches.m) and produce figures (showw.m, analyzewlat.m and makefigures.m)
+If you want to evaluate the trained network and generate the figures from the paper, you will need to run `./stdp test`, and also `./stdp mix` and `./stdp pulse`. Consult `makefigures.m` for more details.
+
+We include additional Matlab programs that generate the image stimuli (makepatches.m - note that  pre-generated image patches are included in the present code base) and produce figures (showw.m, analyzewlat.m and makefigures.m)
 
 - showw.m produces a picture of the receptive fields (subtracting feedforward weights from the ON and OFF retinal cells).
 - analyzewlat.m produces various graphs and preovides information about cluster formation
