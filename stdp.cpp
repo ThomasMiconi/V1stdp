@@ -15,6 +15,10 @@
 #define SPONTANEOUS 7913
 #define PULSE 1978
 
+
+//#define MOD (70.0 / 126.0)
+#define MOD (1.0 / 126.0)
+
 #define dt 1.0 // NOTE: Don't attempt to just modify the dt without reading the code below, as it will likely break things.
 
 #define BASEALTD (14e-5 * 1.5 * 1.0)
@@ -37,8 +41,8 @@
 #define VSTIM 1.0
 
 #define TIMEZEROINPUT 100
-#define NBPATTERNSLEARNING 1000000
-#define NBPATTERNSTESTING 1000 
+#define NBPATTERNSLEARNING 500000
+#define NBPATTERNSTESTING 1000 // 1000 
 #define NBPATTERNSPULSE 50 
 #define PRESTIMEMIXING 350 // in ms
 #define PRESTIMEPULSE 350
@@ -46,7 +50,6 @@
 #define PRESTIMESPONT 1000
 #define PULSESTART 0
 //#define NBPRESPERPATTERNLEARNING 30 
-#define NBPRESPERPATTERNTESTING 1 
 #define NBMIXES 30
 
 #define PATCHSIZE 17
@@ -230,6 +233,8 @@ int main(int argc, char* argv[])
         NBRESPS = NBPRES;
         readWeights(w, "w.dat");
         readWeights(wff, "wff.dat");
+        cout << "First row of w (lateral weights): " << w.row(0) << endl;
+        cout << "w(1,2) and w(2,1): " << w(1,2) << " " << w(2,1) << endl;
         
         //w.bottomRows(NBI).leftCols(NBE).fill(1.0); // Inhbitory neurons receive excitatory inputs from excitatory neurons
         //w.rightCols(NBI).fill(-1.0); // Everybody receives fixed, negative inhibition (including inhibitory neurons)
@@ -287,7 +292,8 @@ int main(int argc, char* argv[])
     int8_t* imagedata = (int8_t*) membuf;
     //double* imagedata = (double*) membuf;
     cout << "Data read!" << endl;
-    totaldatasize = fsize / sizeof(double); // To change depending on whether the data is float/single (4) or double (8)
+    //totaldatasize = fsize / sizeof(double); // To change depending on whether the data is float/single (4) or double (8)
+    totaldatasize = fsize / sizeof(int8_t); // To change depending on whether the data is float/single (4) or double (8)
     nbpatchesinfile = totaldatasize / (PATCHSIZE * PATCHSIZE) - 1; // The -1 is just there to ignore the last patch (I think)
     cout << "Total data size (number of values): " << totaldatasize << ", number of patches in file: " << nbpatchesinfile << endl;
     cout << imagedata[5654] << " " << imagedata[6546] << " " << imagedata[9000] << endl;
@@ -447,8 +453,8 @@ int main(int argc, char* argv[])
         
         for (int nn=0; nn < FFRFSIZE / 2; nn++)
         {
-            lgnrates(nn) = log(1.0 + ((double)imagedata[posindata+nn] > 0 ? (double)imagedata[posindata+nn] : 0));
-            lgnrates(nn + FFRFSIZE / 2) = log(1.0 + ((double)imagedata[posindata+nn] < 0 ? -(double)imagedata[posindata+nn] : 0));
+            lgnrates(nn) = log(1.0 + ((double)imagedata[posindata+nn] > 0 ? MOD * (double)imagedata[posindata+nn] : 0));
+            lgnrates(nn + FFRFSIZE / 2) = log(1.0 + ((double)imagedata[posindata+nn] < 0 ? - MOD * (double)imagedata[posindata+nn] : 0));
         }
         lgnrates /= lgnrates.maxCoeff(); // Scale by max! The inputs are scaled to have a maximum of 1 (multiplied by INPUTMULT below)
    
@@ -682,8 +688,9 @@ int main(int argc, char* argv[])
             vneg = vneg + (dt / TAUVNEG) * (vprevprev - vneg);
             vpos = vpos + (dt / TAUVPOS) * (vprevprev - vpos);
             
-
+            
             if ((PHASE == LEARNING)  && (numpres >= 401) )
+            //if (numpres >= 401) 
             {
 
                 // Plasticity !
@@ -740,12 +747,14 @@ int main(int argc, char* argv[])
         sumw(numpres) = w.sum();
         if (numpres % 100 == 0)
         {
-        cout << "Presentation " << numpres << " / " << NBPRES << endl; if (numpres == 200) cout << "TIME: " << (double)(clock() - tic) / (double)CLOCKS_PER_SEC <<endl;
+        cout << "Presentation " << numpres << " / " << NBPRES << endl; 
+        cout << "TIME: " << (double)(clock() - tic) / (double)CLOCKS_PER_SEC <<endl;
+        tic = clock();
             cout << "Total spikes for each neuron for this presentation: " << resps.col(numpres % NBRESPS).transpose() << endl;
         cout << "Vlongtraces: " << vlongtrace.transpose() << endl;
         cout << " Max LGN rate (should be << 1.0): " << lgnrates.maxCoeff() << endl;
         }
-        if ( ((numpres +1)%  50000 == 0) || (numpres+1 == NBPRES))
+        if ( ((numpres +1)%  10000 == 0) || (numpres+1 == NBPRES))
         {
                 std::string nolatindicator ("");
                 std::string noinhindicator ("");
@@ -787,7 +796,14 @@ int main(int argc, char* argv[])
                 myfile << endl << w << endl;
                 myfile.close();
                 myfile.open("wff.txt", ios::trunc | ios::out);  myfile << endl << wff << endl; myfile.close();
-                if ((numpres +1)%  10000 == 0) { char tmpstr[80]; sprintf(tmpstr, "%s%d%s", "wff_", numpres+1, ".txt"); myfile.open(tmpstr, ios::trunc | ios::out);  myfile << endl << wff << endl; myfile.close(); }
+                if ((numpres +1)%  50000 == 0) 
+                { 
+                    char tmpstr[80]; 
+                    sprintf(tmpstr, "%s%d%s", "wff_", numpres+1, ".txt"); myfile.open(tmpstr, ios::trunc | ios::out);  myfile << endl << wff << endl; myfile.close(); 
+                    sprintf(tmpstr, "%s%d%s", "w_", numpres+1, ".txt"); myfile.open(tmpstr, ios::trunc | ios::out);  myfile << endl << w << endl; myfile.close(); 
+                    saveWeights(w, "w_" + std::to_string( (long long int) (numpres+1)) +".dat");
+                    saveWeights(wff, "wff_" + std::to_string( (long long int) (numpres+1)) +".dat");
+                }
                 myfile.open("resps.txt", ios::trunc | ios::out);
                 myfile << endl << resps << endl;
                 myfile.close();
@@ -801,9 +817,7 @@ int main(int argc, char* argv[])
                 myfile << endl << meanvlongtrace << endl;
                 myfile.close();*/
                 //myfile.open("sumwff.txt", ios::trunc | ios::out); myfile << endl << sumwff << endl;
-                myfile.close();
-                saveWeights(w, "w_" + std::to_string( (long long int) (numpres+1)) +".dat");
-                saveWeights(wff, "wff_" + std::to_string( (long long int) (numpres+1)) +".dat");
+                //myfile.close();
                 saveWeights(w, "w.dat");
                 saveWeights(wff, "wff.dat");
             }
