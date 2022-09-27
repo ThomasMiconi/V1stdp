@@ -20,7 +20,9 @@ The present code base includes pre-trained weights (`w.*` and `wff.*`). If you w
 
 If you want to evaluate the trained network and generate the figures from the paper, you will need to run `./stdp test`, and also `./stdp mix` and `./stdp pulse`. Consult `makefigures.m` for more details.
 
-We include additional Matlab programs that generate the image stimuli (makepatches.m - note that  pre-generated image patches are included in the present code base) and produce figures (showw.m, analyzewlat.m and makefigures.m)
+For convenience, we include a Jupyter notebook (`V1Clusters.ipynb`) that downloads, compiles and runs the code (it also installs the Eigen library). By default it uses the included pre-trained weights, and generates the main figure from the paper. By uncommenting the relevant cell, you can run the training yourself. This notebook should run fine on Google Colab.
+
+We also include additional Matlab programs that generate the image stimuli (makepatches.m - note that  pre-generated image patches are included in the present code base) and produce figures (showw.m, analyzewlat.m and makefigures.m)
 
 - showw.m produces a picture of the receptive fields (subtracting feedforward weights from the ON and OFF retinal cells).
 - analyzewlat.m produces various graphs and preovides information about cluster formation
